@@ -58,7 +58,9 @@ being used (`is_fallback_used` flag), and the JSON itself carries a disclaimer.
 **Capital gains tax** uses the actual current rules (FY 2025-26): 12.5% LTCG
 without indexation, or 20% with indexation (CII = 376) for property acquired
 before 23 July 2024 — the engine computes both and picks whichever is lower, as
-the law allows.
+the law allows. It is only computed when an **Original Purchase Price** is
+provided — a plain valuation (no sale involved) correctly shows ₹0 rather than
+assuming a sale at a guessed markup.
 
 Stamp duty, registration fee percentages/caps, and rebate structures (lump-sum
 payment rebates, senior-citizen/women/disabled rebates, green-building rebates,
@@ -112,20 +114,49 @@ python model_comparison.py
 
 # 5. Launch the app
 streamlit run app.py
+
+# 6. Run the tax engine regression tests
+python test_tax_engine.py    # or: pytest test_tax_engine.py -v
 ```
 
 ## Current model performance (XGBoost, production model)
 
-- R²: 0.945
-- MAPE: ~9.8%
-- MAE: ~₹16.4 lakh (on a dataset where city-level median prices range ~₹54L-₹3Cr)
+Figures below are the actual numbers in `outputs/model_comparison_results.csv`
+from the committed model run — not rounded/rough estimates.
 
-Linear/Ridge/Lasso/ElasticNet score **near zero or negative R²** on this dataset —
-this is an honest, expected result, not a bug: property price here is a
-*multiplicative* function of city tier, area, quality, and amenities, which linear
-models structurally can't capture. Tree-based ensembles (Gradient Boosting, XGBoost,
-Random Forest) dominate, which mirrors how real-world automated valuation models
-are built in practice.
+- R²: 0.9355
+- MAE: ~₹11.8 lakh
+- RMSE: ~₹22.4 lakh
+(on a dataset where city-level median prices range ~₹54L-₹3Cr)
+
+Linear/Ridge/Lasso/ElasticNet score **R² 0.36–0.40** on this dataset — clearly
+worse than the tree-based models, though not near-zero as earlier notes here
+claimed. This is an honest, expected result, not a bug: property price here is
+a *multiplicative* function of city tier, area, quality, and amenities, which
+linear models structurally can't capture. Tree-based ensembles dominate, which
+mirrors how real-world automated valuation models are built in practice.
+
+Gradient Boosting actually scores highest in the 12-model comparison (R² 0.9639,
+vs XGBoost's 0.9355) — XGBoost remains the shipped production model for this
+stage; swapping the production model to Gradient Boosting is a reasonable
+follow-up, not yet done.
+
+## Recent fixes
+
+`tax_engine.py` had four verified bugs, fixed with regression tests in
+`test_tax_engine.py`:
+
+- **BBMP (Bengaluru) tax was ~4.5x too high** — the formula skipped the 20%
+  base-tax-rate step required by the public BBMP Unit Area Value system.
+- **BMC (Mumbai) sub-500-sqft exemption almost never fired** — it wrongly
+  required both built-up *and* carpet area ≤500 sqft; the real rule checks
+  carpet area alone.
+- **Capital gains tax was invented for every plain valuation** — the engine
+  assumed a purchase price 35% below market value when none was given. It now
+  returns ₹0 unless an actual purchase price is entered.
+- **LTCG indexation eligibility (23 July 2024 cutoff) was never checked**
+  against the property's acquisition date — added, though it can't currently
+  trigger given the engine's fixed "2026" clock and the 24-month LTCG floor.
 
 ## What's next (not yet built)
 
