@@ -25,12 +25,28 @@ import json
 import logging
 import os
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from typing import Optional
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("tax_engine")
 
 TAX_RULES_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tax_rules")
+
+# "Today" for age/holding-period math. Kept as a fixed date (matching the 2026
+# hardcoded elsewhere in this module, e.g. age_years = 2026 - construction_year)
+# rather than date.today(), so results stay reproducible across runs.
+_CURRENT_DATE = date(2026, 1, 1)
+
+
+def _parse_iso_date(value: Optional[str]) -> Optional[date]:
+    """Parse a 'YYYY-MM-DD' string from a tax_rules JSON; None if missing/invalid."""
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return None
 
 
 # ──────────────────────────────────────────────────────────────────────────
@@ -366,7 +382,8 @@ class TaxEngine:
         zone_csqft = zone_values[zone_key]
 
         area = prop.built_up_area_sqft if prop.built_up_area_sqft > 0 else max(prop.plot_area_sqft, 1)
-        if area <= pt.get("carpet_area_exemption_sqft", 500) and prop.carpet_area_sqft and prop.carpet_area_sqft <= pt.get("carpet_area_exemption_sqft", 500):
+        # BMC exempts on CARPET area alone (<=500 sqft), regardless of built-up area.
+        if prop.carpet_area_sqft and prop.carpet_area_sqft <= pt.get("carpet_area_exemption_sqft", 500):
             result.annual_property_tax = 0.0
             result.property_tax_breakdown = {"exempt": True, "reason": "Carpet area <= 500 sqft BMC exemption"}
             return
@@ -496,9 +513,9 @@ class TaxEngine:
         depreciation_amount = gross_annual_value * depreciation_pct / 100.0
         taxable_value = gross_annual_value - depreciation_amount
 
-        # BBMP base tax IS the taxable value (20% conceptually baked into UAV rates per public guides);
-        # we apply taxable_value directly as base tax, then add cess on top, matching documented examples.
-        base_tax = taxable_value
+        # BBMP formula (public guides): Property Tax = (taxable value) x 20%, then cess on top.
+        # The 20% was previously omitted, overcharging every Bengaluru estimate ~5x.
+        base_tax = taxable_value * pt.get("base_tax_rate_pct", 20) / 100.0
         cess_pct = pt["cess_pct_of_base_tax"]
         cess_amount = base_tax * cess_pct / 100.0
 
@@ -665,7 +682,19 @@ class TaxEngine:
     # ---- capital gains ------------------------------------------------------
     def _compute_capital_gains(self, prop: PropertyInput, rules: dict, result: TaxBreakdown):
         cg = rules.get("capital_gains", {})
-        purchase_price = prop.purchase_price or (prop.market_value * 0.65)  # assume appreciation if unknown
+
+        # CGT only applies to an actual sale. Without a real purchase price this
+        # used to assume one (market_value * 0.65), which invented a tax bill for
+        # every plain valuation -- including someone who isn't selling at all.
+        if not prop.purchase_price:
+            result.capital_gains_tax_estimate = 0.0
+            result.capital_gains_method = (
+                "Not calculated -- enter an Original Purchase Price to estimate capital gains tax "
+                "(this only applies if you are selling, not for a valuation/holding estimate)."
+            )
+            return
+
+        purchase_price = prop.purchase_price
         sale_price = prop.market_value
         gain = max(0.0, sale_price - purchase_price)
 
@@ -680,11 +709,28 @@ class TaxEngine:
             return
 
         rate_no_indexation = cg.get("ltcg_rate_pct_no_indexation", 12.5)
-        rate_with_indexation = cg.get("ltcg_rate_pct_with_indexation", 20)
         tax_no_indexation = gain * rate_no_indexation / 100.0
+
+        # Indexation (20% route) is only available for property acquired BEFORE the
+        # cutoff date (23 July 2024 per Finance Act 2024); anything bought after that
+        # only gets the 12.5%-no-indexation route. We only have holding_period_months,
+        # so approximate the purchase date from "today" minus that holding period --
+        # consistent with the 2026 "current year" used elsewhere in this engine.
+        cutoff = _parse_iso_date(cg.get("indexation_eligible_if_acquired_before"))
+        approx_purchase_date = _CURRENT_DATE - timedelta(days=prop.holding_period_months * 30.44)
+        indexation_eligible = cutoff is None or approx_purchase_date < cutoff
+
+        if not indexation_eligible:
+            result.capital_gains_tax_estimate = round(tax_no_indexation, 2)
+            result.capital_gains_method = (
+                "Long-term capital gains, 12.5% WITHOUT indexation -- the only route available for property "
+                "acquired on/after 23 July 2024 (indexation was withdrawn by the Finance Act 2024)."
+            )
+            return
 
         # Simplified indexation estimate using CII ratio assumption (purchase ~10 yrs ago -> moderate uplift)
         cii_current = cg.get("cii_fy_2025_26", 376)
+        rate_with_indexation = cg.get("ltcg_rate_pct_with_indexation", 20)
         # Approximate an indexed cost using a flat assumed historical CII based on holding period
         years_held = max(1, prop.holding_period_months / 12)
         assumed_cii_at_purchase = max(100, cii_current / (1.06 ** years_held))  # ~6% avg CII growth assumption
