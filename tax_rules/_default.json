@@ -1,0 +1,61 @@
+{
+  "state": "_DEFAULT_",
+  "system": "generic_annual_rateable_value",
+  "financial_year": "2025-26",
+  "disclaimer": "THIS IS A GENERIC FALLBACK, NOT A RESEARCHED STATE-SPECIFIC RULESET. It is used only when a property's state does not have a dedicated tax_rules/<State>.json file. It approximates a typical Indian Annual Rateable Value (ARV) municipal property tax system using common cross-state parameters (a blended 8-18% rate band, capped depreciation, and standard stamp duty bands seen in 15+ states). Do NOT present figures produced by this fallback as authoritative for any specific city -- they exist so the application never crashes or stalls on an unmapped state, and the UI must clearly label them as estimates.",
+
+  "property_tax": {
+    "method": "percent_of_annual_rateable_value",
+    "annual_rateable_value_pct_of_market_price": 6,
+    "tax_rate_pct": {
+      "self_occupied_residential": 8,
+      "rented_residential": 12,
+      "commercial": 18,
+      "industrial": 15,
+      "land": 5
+    },
+    "age_factor_bands": [
+      {"max_age_years": 10, "factor": 1.0},
+      {"max_age_years": 20, "factor": 0.88},
+      {"max_age_years": 30, "factor": 0.75},
+      {"max_age_years": 9999, "factor": 0.6}
+    ],
+    "rebate_full_payment_pct": 5,
+    "late_payment_penalty_pct_per_month": 2
+  },
+
+  "stamp_duty": {
+    "male_pct": 6,
+    "female_pct": 5,
+    "joint_pct": 6,
+    "registration_fee_pct": 1,
+    "registration_fee_cap": 30000
+  },
+
+  "water_tax": {"flat_annual_estimate_pct_of_property_tax": 10},
+  "sewerage_tax": {"flat_annual_estimate_pct_of_property_tax": 8},
+  "solid_waste_management_charge_flat_annual": 1000,
+  "education_cess_pct_of_property_tax": 0,
+  "fire_cess_pct_of_property_tax": 0,
+
+  "capital_gains": {
+    "long_term_holding_months": 24,
+    "ltcg_rate_pct_no_indexation": 12.5,
+    "ltcg_rate_pct_with_indexation": 20,
+    "indexation_eligible_if_acquired_before": "2024-07-23",
+    "cii_fy_2025_26": 376
+  },
+
+  "rental_income_tax": {
+    "standard_deduction_pct": 30
+  },
+
+  "luxury_property_tax": {
+    "threshold_market_value": 50000000,
+    "additional_cess_pct": 1.0
+  },
+
+  "green_tax": {
+    "rebate_pct_with_solar_or_rainwater": 0
+  }
+}

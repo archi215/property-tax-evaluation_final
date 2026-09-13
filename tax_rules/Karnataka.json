@@ -1,0 +1,82 @@
+{
+  "state": "Karnataka",
+  "municipality": "Bruhat Bengaluru Mahanagara Palike (BBMP)",
+  "system": "unit_area_value_system",
+  "financial_year": "2025-26",
+  "sources": [
+    "https://www.adityabirlacapital.com/abc-of-money/bbmp-property-tax",
+    "https://changeofname.in/bbmp-property-tax-your-complete-guide/",
+    "https://taxarivu.com/bbmp-property-tax-calculator-formula-uav/",
+    "https://www.onecityproperty.com/news/stamp-duty-and-registration-charges-in-karnataka"
+  ],
+  "disclaimer": "Zone rates and cess percentages are illustrative reconstructions from public 2025-26 BBMP guides. Always verify exact current Unit Area Values on the official BBMP SAS portal (bbmptax.karnataka.gov.in) before relying on these for an actual filing.",
+
+  "property_tax": {
+    "zones": {
+      "A": {"tenanted_per_sqft_month": 5.0,  "self_occupied_per_sqft_month": 2.50},
+      "B": {"tenanted_per_sqft_month": 4.0,  "self_occupied_per_sqft_month": 2.00},
+      "C": {"tenanted_per_sqft_month": 3.60, "self_occupied_per_sqft_month": 1.80},
+      "D": {"tenanted_per_sqft_month": 3.00, "self_occupied_per_sqft_month": 1.50},
+      "E": {"tenanted_per_sqft_month": 2.40, "self_occupied_per_sqft_month": 1.20},
+      "F": {"tenanted_per_sqft_month": 2.00, "self_occupied_per_sqft_month": 1.00}
+    },
+    "default_zone": "C",
+    "commercial_multiplier": 2.0,
+    "industrial_multiplier": 1.8,
+    "months_multiplier": 10,
+    "depreciation_by_age": [
+      {"max_age_years": 5,  "depreciation_pct": 0},
+      {"max_age_years": 10, "depreciation_pct": 6},
+      {"max_age_years": 15, "depreciation_pct": 10},
+      {"max_age_years": 20, "depreciation_pct": 15},
+      {"max_age_years": 9999, "depreciation_pct": 20}
+    ],
+    "cess_pct_of_base_tax": 24,
+    "cess_breakdown": {"health_cess_pct": 12, "library_cess_pct": 6, "beggary_cess_pct": 3, "solid_waste_cess_pct": 3},
+    "rebate_full_payment_pct": 5,
+    "rebate_window_note": "5% rebate for full payment between April 1 and May 31 (BBMP early-bird window).",
+    "late_payment_penalty_pct_per_month": 2,
+    "vacant_land_use_factor": 0.5
+  },
+
+  "stamp_duty": {
+    "slabs": [
+      {"max_value": 2000000, "rate_pct": 2},
+      {"max_value": 4500000, "rate_pct": 3},
+      {"max_value": 999999999999, "rate_pct": 5}
+    ],
+    "female_concession_pct": 0,
+    "female_concession_note": "Karnataka does NOT offer a stamp duty concession for women buyers; rates are identical regardless of gender.",
+    "registration_fee_pct": 2,
+    "registration_fee_change_note": "Registration fee doubled from 1% to 2% effective 31 August 2025 - the first change since 2003. Applies to sale deeds, gift deeds, and other registrable instruments."
+  },
+
+  "water_tax": {"flat_annual_estimate_pct_of_property_tax": 10},
+  "sewerage_tax": {"flat_annual_estimate_pct_of_property_tax": 8},
+  "solid_waste_management_charge_flat_annual": 1200,
+  "education_cess_pct_of_property_tax": 0,
+  "fire_cess_pct_of_property_tax": 0,
+
+  "capital_gains": {
+    "long_term_holding_months": 24,
+    "ltcg_rate_pct_no_indexation": 12.5,
+    "ltcg_rate_pct_with_indexation": 20,
+    "indexation_eligible_if_acquired_before": "2024-07-23",
+    "cii_fy_2025_26": 376
+  },
+
+  "rental_income_tax": {
+    "standard_deduction_pct": 30
+  },
+
+  "luxury_property_tax": {
+    "threshold_market_value": 50000000,
+    "additional_cess_pct": 1.0,
+    "note": "Illustrative surcharge for ultra-luxury Bengaluru properties; not an officially named separate Karnataka tax."
+  },
+
+  "green_tax": {
+    "rebate_pct_with_solar_or_rainwater": 0,
+    "note": "BBMP does not publish a standard green-building property tax rebate; not applied for Karnataka in this build."
+  }
+}

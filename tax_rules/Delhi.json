@@ -1,0 +1,83 @@
+{
+  "state": "Delhi",
+  "municipality": "Municipal Corporation of Delhi (MCD)",
+  "system": "unit_area_system",
+  "financial_year": "2025-26",
+  "sources": [
+    "https://www.bajajfinserv.in/property-tax-rates-in-delhi",
+    "https://corpbiz.io/learning/delhi-property-tax-payment-rates/",
+    "https://www.99acres.com/articles/how-to-pay-property-tax-in-delhi.html",
+    "https://cleartax.in/s/stamp-duty-and-registration-charges-in-delhi"
+  ],
+  "disclaimer": "Rates are illustrative and reconstructed from public guides on the MCD Unit Area System; verify exact, current figures on the official MCD portal (mcdonline.nic.in) before relying on them for an actual filing.",
+
+  "property_tax": {
+    "categories": {
+      "A": {"unit_area_value_per_sqm": 630, "residential_rate_pct": 12, "commercial_rate_pct": 20},
+      "B": {"unit_area_value_per_sqm": 500, "residential_rate_pct": 12, "commercial_rate_pct": 20},
+      "C": {"unit_area_value_per_sqm": 400, "residential_rate_pct": 11, "commercial_rate_pct": 20},
+      "D": {"unit_area_value_per_sqm": 320, "residential_rate_pct": 11, "commercial_rate_pct": 20},
+      "E": {"unit_area_value_per_sqm": 270, "residential_rate_pct": 11, "commercial_rate_pct": 20},
+      "F": {"unit_area_value_per_sqm": 200, "residential_rate_pct": 7,  "commercial_rate_pct": 20},
+      "G": {"unit_area_value_per_sqm": 160, "residential_rate_pct": 7,  "commercial_rate_pct": 20},
+      "H": {"unit_area_value_per_sqm": 100, "residential_rate_pct": 7,  "commercial_rate_pct": 15}
+    },
+    "default_category": "C",
+    "industrial_rate_pct_of_annual_value": 15,
+    "vacant_land_rate_pct_of_annual_value": 0.3,
+    "use_factor": {"Residential": 1.0, "Commercial": 2.0, "Industrial": 2.0, "Land": 1.0},
+    "structure_factor": {"RCC": 1.0, "Non-RCC": 0.7, "Pucca": 1.0, "Semi-Pucca": 0.7, "Kuccha": 0.5},
+    "occupancy_factor": {"Owner Occupied": 1.0, "Rented": 1.0, "Vacant": 1.0},
+    "age_factor_bands": [
+      {"max_age_years": 10, "factor": 1.0},
+      {"max_age_years": 20, "factor": 0.9},
+      {"max_age_years": 30, "factor": 0.8},
+      {"max_age_years": 9999, "factor": 0.6}
+    ],
+    "rebates": {
+      "lump_sum_first_quarter_pct": 15,
+      "senior_citizen_women_disabled_exservicemen_pct": 30,
+      "senior_citizen_rebate_area_cap_sqm": 200,
+      "dda_cghs_flat_rebate_pct": 10
+    },
+    "late_payment_penalty_pct_per_month": 1
+  },
+
+  "water_tax": {"pct_of_property_tax": 0, "note": "Water/sewer charges in Delhi are typically billed by Delhi Jal Board separately based on consumption, not as a fixed percentage of property tax. Estimated flat charge used as a fallback below.", "flat_annual_estimate_pct_of_property_tax": 10},
+  "sewerage_tax": {"flat_annual_estimate_pct_of_property_tax": 8},
+  "education_cess_pct_of_property_tax": 0,
+  "fire_cess_pct_of_property_tax": 0,
+  "solid_waste_management_charge_flat_annual": 1200,
+
+  "stamp_duty": {
+    "male_pct": 6,
+    "female_pct": 4,
+    "joint_pct": 5,
+    "registration_fee_pct": 1,
+    "transfer_duty_pct_municipal": 0,
+    "gift_deed_male_pct": 6,
+    "gift_deed_female_pct": 4
+  },
+
+  "capital_gains": {
+    "long_term_holding_months": 24,
+    "ltcg_rate_pct_no_indexation": 12.5,
+    "ltcg_rate_pct_with_indexation": 20,
+    "indexation_eligible_if_acquired_before": "2024-07-23",
+    "cii_fy_2025_26": 376,
+    "stcg_note": "Taxed at applicable income tax slab rate."
+  },
+
+  "rental_income_tax": {
+    "standard_deduction_pct": 30,
+    "note": "Net Annual Value (after 30% standard deduction and municipal taxes paid) is taxed at the owner's income tax slab rate."
+  },
+
+  "luxury_property_tax": {
+    "threshold_market_value": 50000000,
+    "additional_cess_pct": 1.0,
+    "note": "Illustrative luxury cess for ultra-high-value properties; Delhi does not have a separately named 'luxury tax' on property, this models a reasonable surcharge assumption."
+  },
+
+  "green_tax": {"rebate_pct_with_solar_or_rainwater": 0, "note": "No standard MCD green rebate found; not applied for Delhi in this build."}
+}

@@ -1,0 +1,112 @@
+{
+  "state": "Maharashtra",
+  "system": "capital_value_system",
+  "financial_year": "2025-26",
+  "sources": [
+    "https://www.tools.realestate/s/india/maharashtra/mumbai-property-tax-calculator",
+    "https://warikoosipcalculator.in/mumbai-mcgm.php",
+    "https://www.bajajfinserv.in/property-tax-mumbai",
+    "https://www.basichomeloan.com/blog/home-loans/pmc-property-tax",
+    "https://cleartax.in/s/stamp-duty-and-registration-charges-in-maharashtra",
+    "https://www.koltepatil.com/blog/2025/09/03/stamp-duty-registration-charges-pune-2025/"
+  ],
+  "disclaimer": "Capital values are illustrative reconstructions from public 2025-26 guides on the BMC/PMC Capital Value System. Always verify current ready-reckoner rates on the official IGR Maharashtra / MCGM / PMC portals before relying on these for an actual filing.",
+
+  "cities": {
+    "Mumbai": {
+      "municipality": "Brihanmumbai Municipal Corporation (BMC / MCGM)",
+      "property_tax": {
+        "zone_capital_value_per_sqft": {
+          "A_South_Mumbai": 15000,
+          "B_Premium_Suburbs": 11000,
+          "C_Central_Suburbs": 8000,
+          "D_Extended_Suburbs": 5500,
+          "E_Peripheral": 4000
+        },
+        "default_zone": "C_Central_Suburbs",
+        "building_factor": {"RCC": 1.0, "Load Bearing": 0.85, "Chawl": 0.70},
+        "floor_factor_increment_pct_per_floor": 2,
+        "age_depreciation_max_pct": 30,
+        "age_depreciation_full_at_years": 40,
+        "tax_rate_pct": {"self_occupied_residential": 0.5, "rented_residential": 1.0, "commercial": 1.5, "industrial": 1.5},
+        "carpet_area_exemption_sqft": 500,
+        "exemption_note": "Properties with carpet area up to 500 sq ft are exempt from property tax under BMC rules."
+      },
+      "stamp_duty_pct": {"male": 6, "female": 5, "joint": 6}
+    },
+    "Pune": {
+      "municipality": "Pune Municipal Corporation (PMC)",
+      "property_tax": {
+        "base_value_per_sqft": {
+          "Pune_Central": 15700,
+          "Pune_East": 13400,
+          "Pune_West": 13250,
+          "Pimpri_Chinchwad": 12500,
+          "Pune_South": 12000
+        },
+        "default_zone": "Pune_West",
+        "use_category_factor": {"Residential": 1.0, "Commercial": 1.6, "Industrial": 1.4, "Land": 0.6},
+        "building_type_factor": {"RCC": 1.0, "Simple/Load Bearing": 0.85, "Patra/Tin Shed": 0.65},
+        "age_factor_bands": [
+          {"max_age_years": 10, "factor": 1.0},
+          {"max_age_years": 20, "factor": 0.9},
+          {"max_age_years": 30, "factor": 0.8},
+          {"max_age_years": 9999, "factor": 0.65}
+        ],
+        "floor_factor_increment_pct_per_floor": 1,
+        "tax_rate_pct": {"self_occupied_residential": 0.4, "rented_residential": 0.65, "commercial": 1.1, "industrial": 1.0},
+        "self_occupancy_rebate_pct": 40,
+        "self_occupancy_rebate_note": "40% self-occupancy rebate reinstated by Maharashtra legislature in Aug 2024, applies only to self-occupied residential properties.",
+        "early_payment_rebate": [
+          {"max_annual_value": 25000, "rebate_pct": 10},
+          {"max_annual_value": 99999999, "rebate_pct": 5}
+        ],
+        "green_rebate_pct_per_eco_feature": 5,
+        "green_rebate_max_pct": 10
+      },
+      "stamp_duty_pct": {"male": 7, "female": 6, "joint": 7, "metro_cess_pct": 1, "local_body_tax_pct": 1}
+    }
+  },
+
+  "default_city_fallback": {
+    "note": "For any Maharashtra city not explicitly listed, the engine falls back to a generic capital-value formula using state-average base values and Pune's rate structure scaled down by 15%.",
+    "base_value_per_sqft": 6000,
+    "tax_rate_pct": {"self_occupied_residential": 0.45, "rented_residential": 0.7, "commercial": 1.2, "industrial": 1.1}
+  },
+
+  "stamp_duty": {
+    "municipal_corporation_area_pct": 6,
+    "municipal_council_area_pct": 4,
+    "gram_panchayat_area_pct": 3,
+    "female_concession_pct": 1,
+    "registration_fee_pct": 1,
+    "registration_fee_cap": 30000,
+    "registration_fee_cap_threshold_value": 3000000
+  },
+
+  "water_tax": {"flat_annual_estimate_pct_of_property_tax": 12},
+  "sewerage_tax": {"flat_annual_estimate_pct_of_property_tax": 10},
+  "solid_waste_management_charge_flat_annual": 1500,
+  "education_cess_pct_of_property_tax": 0,
+  "fire_cess_pct_of_property_tax": 0,
+  "bmc_cess_pct_of_property_tax": 24,
+  "bmc_cess_note": "BBMP-style cess is a Karnataka concept; Maharashtra cities generally do not levy an equivalent flat cess on top of capital-value tax, so this is set to 0 by default for Maharashtra and only the base capital-value tax applies.",
+
+  "capital_gains": {
+    "long_term_holding_months": 24,
+    "ltcg_rate_pct_no_indexation": 12.5,
+    "ltcg_rate_pct_with_indexation": 20,
+    "indexation_eligible_if_acquired_before": "2024-07-23",
+    "cii_fy_2025_26": 376
+  },
+
+  "rental_income_tax": {
+    "standard_deduction_pct": 30
+  },
+
+  "luxury_property_tax": {
+    "threshold_market_value": 75000000,
+    "additional_cess_pct": 1.0,
+    "note": "Illustrative surcharge for ultra-luxury Mumbai/Pune properties; not an officially named separate tax."
+  }
+}
