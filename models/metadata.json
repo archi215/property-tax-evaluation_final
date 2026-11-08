@@ -1,0 +1,205 @@
+{
+  "trained_at": "2026-11-01T06:02:37",
+  "xgboost_version": "3.4.1",
+  "python": "3.12.3",
+  "params": {
+    "n_estimators": 3000,
+    "max_depth": 6,
+    "learning_rate": 0.03,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_alpha": 0.5,
+    "reg_lambda": 2.0,
+    "min_child_weight": 1
+  },
+  "best_iteration": 1017,
+  "features": [
+    "latitude",
+    "longitude",
+    "built_up_area_sqft",
+    "carpet_area_sqft",
+    "plot_area_sqft",
+    "construction_year",
+    "property_age",
+    "num_floors",
+    "floor_number",
+    "bedrooms",
+    "bathrooms",
+    "parking",
+    "road_width_ft",
+    "nearby_metro",
+    "nearby_school",
+    "nearby_hospital",
+    "nearby_market",
+    "nearby_airport",
+    "nearby_railway_station",
+    "corner_plot",
+    "lift_available",
+    "swimming_pool",
+    "solar_panels",
+    "rainwater_harvesting",
+    "green_certified",
+    "city_encoded",
+    "state_encoded",
+    "city_anchor_psqft",
+    "is_metro",
+    "property_type_Apartment",
+    "property_type_Independent House",
+    "property_type_Office",
+    "property_type_Plot",
+    "property_type_Shop",
+    "property_type_Villa",
+    "property_type_Warehouse",
+    "property_category_Commercial",
+    "property_category_Industrial",
+    "property_category_Land",
+    "property_category_Residential",
+    "facing_direction_East",
+    "facing_direction_North",
+    "facing_direction_North-East",
+    "facing_direction_North-West",
+    "facing_direction_South",
+    "facing_direction_South-East",
+    "facing_direction_South-West",
+    "facing_direction_West",
+    "construction_quality_Basic",
+    "construction_quality_Luxury",
+    "construction_quality_Premium",
+    "construction_quality_Standard",
+    "occupancy_Owner Occupied",
+    "occupancy_Rented",
+    "occupancy_Vacant",
+    "zone_Central",
+    "zone_East",
+    "zone_North",
+    "zone_South",
+    "zone_West",
+    "total_rooms",
+    "amenity_score",
+    "log_effective_area",
+    "log_city_encoded",
+    "log_city_anchor"
+  ],
+  "n_rows": {
+    "train": 8232,
+    "valid": 1176,
+    "calib": 1176,
+    "test": 1176
+  },
+  "test_metrics": {
+    "mae": 909144.5978954084,
+    "rmse": 1622853.9083278822,
+    "r2": 0.9671392212191994,
+    "r2_log": 0.9790319085608765,
+    "mape": 8.886480104627545,
+    "median_ape": 7.186863758063583
+  },
+  "conformal_log_quantiles": {
+    "global": {
+      "90": 0.18370768667794657,
+      "80": 0.13731124704183273
+    },
+    "by_category": {
+      "Commercial": {
+        "90": 0.20483339796016864,
+        "80": 0.13021495119616588,
+        "n": 146
+      },
+      "Land": {
+        "90": 0.222649732674574,
+        "80": 0.14250799015798776,
+        "n": 158
+      },
+      "Residential": {
+        "90": 0.18019414870520833,
+        "80": 0.13702082375647606,
+        "n": 839
+      }
+    },
+    "by_type": {
+      "Apartment": {
+        "90": 0.17210783645217376,
+        "80": 0.1361365197659623,
+        "n": 517
+      },
+      "Independent House": {
+        "90": 0.18954968620474233,
+        "80": 0.13932240218155556,
+        "n": 209
+      },
+      "Office": {
+        "90": 0.16228275878780707,
+        "80": 0.115940383991191,
+        "n": 72
+      },
+      "Plot": {
+        "90": 0.222649732674574,
+        "80": 0.14250799015798776,
+        "n": 158
+      },
+      "Shop": {
+        "90": 0.25753996081781594,
+        "80": 0.148033753922876,
+        "n": 74
+      },
+      "Villa": {
+        "90": 0.21552685330249233,
+        "80": 0.14145518195303808,
+        "n": 113
+      },
+      "Warehouse": {
+        "90": 0.25356567794728235,
+        "80": 0.20643823732080335,
+        "n": 33
+      }
+    }
+  },
+  "empirical_coverage_test": {
+    "90": 0.9098639455782312,
+    "80": 0.8001700680272109
+  },
+  "coverage_by_type_test": {
+    "Apartment": {
+      "n_test": 545,
+      "coverage_90_global_q": 0.9394495412844037,
+      "coverage_90_type_q": 0.9192660550458716,
+      "n_cal": 517
+    },
+    "Independent House": {
+      "n_test": 217,
+      "coverage_90_global_q": 0.9170506912442397,
+      "coverage_90_type_q": 0.9216589861751152,
+      "n_cal": 209
+    },
+    "Office": {
+      "n_test": 66,
+      "coverage_90_global_q": 0.9393939393939394,
+      "coverage_90_type_q": 0.8787878787878788,
+      "n_cal": 72
+    },
+    "Plot": {
+      "n_test": 134,
+      "coverage_90_global_q": 0.8805970149253731,
+      "coverage_90_type_q": 0.9776119402985075,
+      "n_cal": 158
+    },
+    "Shop": {
+      "n_test": 65,
+      "coverage_90_global_q": 0.8615384615384616,
+      "coverage_90_type_q": 0.9230769230769231,
+      "n_cal": 74
+    },
+    "Villa": {
+      "n_test": 110,
+      "coverage_90_global_q": 0.9272727272727272,
+      "coverage_90_type_q": 0.9545454545454546,
+      "n_cal": 113
+    },
+    "Warehouse": {
+      "n_test": 39,
+      "coverage_90_global_q": 0.5384615384615384,
+      "coverage_90_type_q": 0.7435897435897436,
+      "n_cal": 33
+    }
+  }
+}

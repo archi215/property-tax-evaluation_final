@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Property valuation and tax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+<style>
+:root{--ink:#16213A;--indigo:#26338A;--indigo-d:#1B2565;--stage:#F3F5F9;--rule:rgba(22,33,58,.14);--muted:#667089;--stamp:#B83A2F;--survey:#2F7D6B;--sun:#FFC15A;--band90:rgba(38,51,138,.13);--band80:rgba(38,51,138,.30)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);background:var(--stage);font-size:15px;line-height:1.45}
+h1,h2,h3,.disp{font-family:'Bricolage Grotesque',system-ui,sans-serif;letter-spacing:-.02em}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.4rem;background:var(--indigo-d);color:#fff;position:sticky;top:0;z-index:20}
+.brand{font-family:'Bricolage Grotesque';font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+.brand i{font-style:normal;color:var(--sun)}
+nav button{background:none;border:0;color:rgba(255,255,255,.7);font:500 .95rem 'IBM Plex Sans';padding:.35rem .9rem;cursor:pointer;border-bottom:2px solid transparent}
+nav button:hover{color:#fff}nav button.on{color:#fff;border-color:var(--sun)}
+.view{display:none}.view.on{display:grid}
+#studio{grid-template-columns:minmax(330px,31%) 1fr;min-height:calc(100vh - 46px)}
+.panel{background:var(--indigo);color:#fff;padding:1.4rem 1.5rem 3rem;position:sticky;top:46px;height:calc(100vh - 46px);overflow:auto;
+ background-image:repeating-radial-gradient(circle at 120% -10%,transparent 0 46px,rgba(255,255,255,.045) 46px 47px)}
+.panel h3{margin:1.4rem 0 .6rem;font-size:.95rem;font-weight:600;color:var(--sun)}
+.panel h3:first-child{margin-top:0}
+.f{margin:.7rem 0}.f label{display:flex;justify-content:space-between;font-size:.86rem;color:rgba(255,255,255,.8);margin-bottom:.2rem}
+.f label b{font-family:'Bricolage Grotesque';font-size:1rem;color:#fff;font-weight:700}
+select{width:100%;padding:.5rem .6rem;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font:inherit}
+select option{color:#16213A}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;background:rgba(255,255,255,.28);border-radius:4px;outline:none;margin:.45rem 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--sun);border:3px solid var(--indigo);box-shadow:0 0 0 1px var(--sun);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--sun);border:3px solid var(--indigo);cursor:pointer}
+.pills{display:flex;flex-wrap:wrap;gap:.4rem}
+.pill{padding:.28rem .75rem;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:none;color:#fff;font:500 .84rem 'IBM Plex Sans';cursor:pointer}
+.pill.on{background:#fff;color:var(--indigo-d);border-color:#fff}
+.stage{padding:1.6rem clamp(1rem,3vw,3rem) 3rem;min-width:0}
+.eyebrow{color:var(--muted);font-size:.95rem}
+.price{font-family:'Bricolage Grotesque';font-weight:800;font-size:clamp(2.8rem,7.4vw,6.4rem);line-height:.95;letter-spacing:-.04em;font-variant-numeric:tabular-nums;margin:.2rem 0 0}
+.ruler{position:relative;height:36px;margin:1.6rem 0 3rem;max-width:880px}
+.ruler .tr{position:absolute;left:0;right:0;top:17px;height:2px;background:var(--rule)}
+.ruler .bd{position:absolute;top:9px;height:18px;border-radius:2px}
+.ruler .pin{position:absolute;top:0;width:3px;height:36px;background:var(--stamp)}
+.ruler .pin:after{content:'';position:absolute;top:-6px;left:-5px;width:13px;height:13px;border-radius:50%;background:var(--stamp)}
+.ruler .tk{position:absolute;top:30px;transform:translateX(-50%);font-size:.76rem;color:var(--muted);white-space:nowrap;text-align:center}
+.ruler .tk b{display:block;color:var(--ink);font-size:.86rem}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);margin-bottom:1.4rem}
+.kpi{padding:.9rem 1rem .9rem 0}.kpi+.kpi{padding-left:1.1rem;border-left:1px solid var(--rule)}
+.kpi .l{font-size:.8rem;color:var(--muted)}.kpi .v{font-family:'Bricolage Grotesque';font-weight:700;font-size:1.6rem;font-variant-numeric:tabular-nums}.kpi .n{font-size:.78rem;color:var(--muted)}
+.tabs{display:flex;gap:1.4rem;border-bottom:1px solid var(--rule);margin-bottom:1rem;flex-wrap:wrap}
+.tabs button{background:none;border:0;padding:.5rem 0;font:600 .98rem 'IBM Plex Sans';color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-color:var(--stamp)}
+.pane{display:none}.pane.on{display:block}
+.chart{width:100%}
+table{border-collapse:collapse;width:100%;max-width:640px}td,th{padding:.4rem .2rem;border-bottom:1px solid var(--rule);text-align:left;font-size:.92rem}td:last-child,th:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.note{border-left:3px solid var(--stamp);padding:.45rem .9rem;background:rgba(38,51,138,.05);font-size:.88rem;margin:1rem 0;max-width:760px}
+ul.recs{padding-left:1.1rem;max-width:760px}ul.recs li{margin:.4rem 0}
+.meter{height:8px;background:var(--rule);border-radius:4px;margin:.3rem 0 1rem;max-width:420px}.meter i{display:block;height:100%;border-radius:4px}
+.page{padding:1.6rem clamp(1rem,3vw,3rem) 3rem;max-width:1180px;margin:0 auto;width:100%}
+.page h1{font-size:2.2rem;margin:.2rem 0 .3rem}.page .sub{color:var(--muted);max-width:44rem;margin:0 0 1.2rem}
+.row{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;margin:.8rem 0}
+.row select{width:auto;background:#fff;color:var(--ink);border-color:var(--rule)}
+.seg button{padding:.35rem .9rem;border:1px solid var(--rule);background:#fff;font:500 .88rem 'IBM Plex Sans';cursor:pointer}
+.seg button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.page input[type=range]{background:var(--rule);width:260px}.page input[type=range]::-webkit-slider-thumb{border-color:#fff;background:var(--indigo);box-shadow:0 0 0 1px var(--indigo)}
+.hidden{display:none}
+@media(max-width:900px){#studio{grid-template-columns:1fr}.panel{position:static;height:auto}.kpis{grid-template-columns:1fr 1fr}.kpi:nth-child(3){border-left:0;padding-left:0}.two{grid-template-columns:1fr}}
+
+.btn{background:var(--indigo);color:#fff;border:0;border-radius:6px;padding:.5rem 1rem;font:600 .9rem 'IBM Plex Sans';cursor:pointer}.btn:hover{background:var(--indigo-d)}.btn.ghost{background:none;color:var(--indigo);border:1px solid var(--indigo)}
+.actions{display:flex;gap:.6rem;align-items:center;margin:-.6rem 0 1.2rem;flex-wrap:wrap}.actions span{color:var(--muted);font-size:.88rem}
+.pf{margin:.6rem 0;min-width:230px}.pf label{display:flex;justify-content:space-between;font-size:.86rem;color:var(--muted)}.pf label b{color:var(--ink);font-family:'Bricolage Grotesque';font-size:1rem}
+.page input[type=number],.page input[type=text]{padding:.45rem .6rem;border:1px solid var(--rule);border-radius:6px;font:inherit;background:#fff;color:var(--ink);width:190px}
+.ctl{display:flex;flex-wrap:wrap;gap:0 2rem;margin:.4rem 0 1rem}
+.cmp{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;max-width:860px}.cmp div{padding:.5rem .3rem;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums}.cmp .h{font-weight:600;color:var(--muted);font-size:.85rem}
+.good{color:var(--survey);font-weight:600}.bad{color:var(--stamp);font-weight:600}
+.verdict{font:700 1.4rem 'Bricolage Grotesque';max-width:760px;margin:1.2rem 0}
+.scroll{max-height:420px;overflow:auto;border:1px solid var(--rule)}.scroll table{max-width:none}.scroll th{position:sticky;top:0;background:#fff}
+@media(max-width:900px){.cmp{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="bar"><div class="brand">Land<i>.</i>Value</div>
+<nav><button data-v="studio" class="on">Studio</button><button data-v="compare">Compare</button><button data-v="money">Money</button><button data-v="portfolio">Portfolio</button><button data-v="market">Market</button><button data-v="trust">Confidence</button></nav></header>
+
+<main id="studio" class="view on">
+ <aside class="panel" id="controls"></aside>
+ <section class="stage">
+  <div class="eyebrow" id="eyebrow">Estimated market value</div>
+  <div class="price" id="price">&nbsp;</div>
+  <div class="ruler" id="ruler"></div>
+  <div class="kpis" id="kpis"></div>
+  <div class="actions"><button class="btn" id="b-save">Save to history</button><button class="btn ghost" id="b-pdf">Download PDF report</button><span id="act-msg"></span></div>
+  <div class="tabs" id="tabs"><button data-t="drivers" class="on">Why this price</button><button data-t="costs">Costs and tax</button><button data-t="loan">Loan</button><button data-t="advice">Advice</button><button data-t="nego">Negotiate</button></div>
+  <div class="pane on" id="p-drivers"><div class="chart" id="c-wf"></div><p class="eyebrow">Each bar is the exact contribution of a group of features, in rupees. It describes what the model learned from synthetic data, not real-market causes.</p></div>
+  <div class="pane" id="p-costs"><div class="two"><div class="chart" id="c-ot"></div><div id="t-rec"></div></div><div id="t-note"></div></div>
+  <div class="pane" id="p-loan"><div class="chart" id="c-loan"></div><div class="kpis" id="loan-kpis"></div></div>
+  <div class="pane" id="p-nego"><p class="eyebrow" style="max-width:640px">Enter the seller's asking price to see where it sits among the prices the model considers plausible for this property.</p>
+   <div class="row"><label>Asking price (₹)</label><input type="number" id="ask" step="100000" style="padding:.45rem .6rem;border:1px solid var(--rule);border-radius:6px;font:inherit;width:200px"></div><div id="nego-out"></div><div class="chart" id="c-nego"></div></div>
+  <div class="pane" id="p-advice"><ul class="recs" id="recs"></ul><div id="scores"></div></div>
+ </section>
+</main>
+
+
+<main id="compare" class="view"><div class="page">
+ <h1>Two properties, one verdict</h1><p class="sub">A is the property from the Studio. Change B below and see which one gives more for the money.</p>
+ <div class="ctl" id="b-ctl"></div><div id="cmp-out"></div><div class="chart" id="c-cmp"></div>
+</div></main>
+
+<main id="money" class="view"><div class="page">
+ <h1>Money</h1><p class="sub">Loans, what you can afford, and whether renting would serve you better. Prices start from your Studio valuation.</p>
+ <div class="tabs" id="money-tabs"><button data-s="loan" class="on">Loan lab</button><button data-s="aff">Affordability</button><button data-s="rent">Rent or buy</button></div>
+ <div id="s-loan"></div><div id="s-aff" class="hidden"></div><div id="s-rent" class="hidden"></div>
+</div></main>
+
+<main id="portfolio" class="view"><div class="page">
+ <h1>Portfolio</h1><p class="sub">Value a spreadsheet of properties, and reopen valuations you saved.</p>
+ <h3 class="disp">Bulk valuation</h3>
+ <div class="row"><input type="file" id="bulk-file" accept=".csv"><button class="btn ghost" id="b-template">Download template</button></div>
+ <div id="bulk-out"></div>
+ <h3 class="disp" style="margin-top:2rem">Saved valuations</h3><div id="hist-out"></div>
+</div></main>
+
+<main id="market" class="view"><div class="page">
+ <h1>Where prices sit</h1><p class="sub">Median price per square foot in each city. Click a bubble for the numbers.</p>
+ <div class="row"><select id="m-type"></select><span class="seg" id="m-metric"><button data-m="psqft" class="on">Per sq ft</button><button data-m="price">Median price</button><button data-m="n">Listings</button></span></div>
+ <div class="chart" id="c-map" style="height:520px"></div><div id="m-detail" class="note" style="display:none"></div>
+ <div class="chart" id="c-rank" style="height:440px"></div>
+</div></main>
+
+<main id="trust" class="view"><div class="page">
+ <h1>How sure is sure?</h1><p class="sub">Choose a confidence level. The range around every estimate changes, and we check it on properties the model never saw.</p>
+ <div class="kpis" id="t-model"></div>
+ <div class="row"><label>Confidence <b id="conf-v" class="disp">90%</b></label><input type="range" id="conf" min="50" max="99" value="90"><label><input type="checkbox" id="fixed"> Compare with a fixed ±10% band</label></div>
+ <div class="kpis" id="t-kpis"></div>
+ <div class="chart" id="c-scatter" style="height:400px"></div><div class="chart" id="c-curve" style="height:320px"></div>
+</div></main>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const INK='#16213A',ACC='#26338A',STAMP='#B83A2F',SURVEY='#2F7D6B',GOLD='#B8892B';
+const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const cmp=n=>{const a=Math.abs(n),s=n<0?'−':'';return a>=1e7?s+'₹'+(a/1e7).toFixed(2)+' Cr':a>=1e5?s+'₹'+(a/1e5).toFixed(2)+' L':s+inr(a)};
+const LAY=(h,extra={})=>Object.assign({paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',font:{family:'IBM Plex Sans',color:INK,size:13},margin:{l:56,r:12,t:28,b:44},height:h,hovermode:'closest',legend:{orientation:'h',y:-.2}},extra);
+const CFG={displayModeBar:false,responsive:true};
+let META=null,DATA=null,TAB='drivers',seq=0,timer=null;
+const S={state:'Delhi',city:'Delhi',property_type:'Apartment',built_up_area_sqft:1200,carpet_pct:85,construction_year:2015,bedrooms:3,bathrooms:2,floor_number:2,
+ construction_quality:'Standard',occupancy:'Owner Occupied',buyer_gender:'Male',amen:['Parking','Lift'],near:['School','Hospital','Market'],down_payment_pct:20,loan_rate:8.5,loan_years:20};
+const TYPES=['Apartment','Villa','Independent House','Plot','Office','Shop','Warehouse'];
+
+/* ---------- controls ---------- */
+function slider(key,label,min,max,step,fmt=v=>v){return `<div class="f"><label>${label}<b id="v-${key}">${fmt(S[key])}</b></label><input type="range" min="${min}" max="${max}" step="${step}" value="${S[key]}" data-k="${key}" data-fmt="${fmt.name||''}"></div>`}
+function select(key,label,opts){return `<div class="f"><label>${label}</label><select data-k="${key}">${opts.map(o=>`<option ${o==S[key]?'selected':''}>${o}</option>`).join('')}</select></div>`}
+function pills(key,label,opts,multi){return `<div class="f"><label>${label}</label><div class="pills" data-pk="${key}" data-multi="${multi?1:0}">${opts.map(o=>`<button class="pill ${(multi?S[key].includes(o):S[key]===o)?'on':''}" data-o="${o}">${o}</button>`).join('')}</div></div>`}
+function buildControls(){
+  const states=[...new Set(META.cities.map(c=>c.state))].sort(),cities=META.cities.filter(c=>c.state===S.state).map(c=>c.city);
+  if(!cities.includes(S.city))S.city=cities[0];
+  $('#controls').innerHTML=`<h3>Where</h3>${select('state','State',states)}${select('city','City',cities)}
+  <h3>What</h3>${pills('property_type','Type',TYPES,false)}${slider('built_up_area_sqft','Built-up area',200,10000,50,v=>v.toLocaleString('en-IN')+' sq ft')}
+  ${slider('construction_year','Built in',1950,2026,1)}${select('construction_quality','Quality',['Basic','Standard','Premium','Luxury'])}
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem">${slider('bedrooms','Beds',0,8,1)}${slider('bathrooms','Baths',0,8,1)}${slider('floor_number','Floor',0,40,1)}</div>
+  ${select('occupancy','Occupancy',['Owner Occupied','Rented','Vacant'])}
+  <h3>Features</h3>${pills('amen','Amenities',META.amenities,true)}${pills('near','Close by',META.nearby,true)}
+  <h3>Buyer and loan</h3>${select('buyer_gender','Stamp duty category',['Male','Female','Joint'])}
+  ${slider('down_payment_pct','Down payment',0,90,1,v=>v+'%')}${slider('loan_rate','Interest rate',6,14,.1,v=>(+v).toFixed(1)+'%')}${slider('loan_years','Tenure',5,30,1,v=>v+' yrs')}`;
+}
+const FMT={undefined:v=>v};
+document.addEventListener('input',e=>{const k=e.target.dataset?.k;if(!k)return;
+  if(e.target.type==='range'){S[k]=+e.target.value;const el=$('#v-'+k);if(el){el.textContent=k==='built_up_area_sqft'?(+e.target.value).toLocaleString('en-IN')+' sq ft':k==='down_payment_pct'?e.target.value+'%':k==='loan_rate'?(+e.target.value).toFixed(1)+'%':k==='loan_years'?e.target.value+' yrs':e.target.value}}
+  queue()});
+document.addEventListener('change',e=>{const k=e.target.dataset?.k;if(!k||e.target.type==='range')return;S[k]=e.target.value;if(k==='state')buildControls();queue()});
+document.addEventListener('click',e=>{const b=e.target.closest('.pill');if(!b)return;const w=b.parentElement,k=w.dataset.pk,o=b.dataset.o;
+  if(w.dataset.multi==='1'){S[k]=S[k].includes(o)?S[k].filter(x=>x!==o):[...S[k],o]}else S[k]=o;
+  $$(`[data-pk="${k}"] .pill`).forEach(p=>p.classList.toggle('on',w.dataset.multi==='1'?S[k].includes(p.dataset.o):S[k]===p.dataset.o));queue()});
+
+/* ---------- valuation ---------- */
+function queue(){clearTimeout(timer);timer=setTimeout(go,140)}
+async function go(){const my=++seq;const r=await fetch('/api/valuate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
+  if(my!==seq)return;DATA=await r.json();render()}
+function render(){const d=DATA,p=d.pred,t=d.tax;
+  $('#eyebrow').textContent=`${S.built_up_area_sqft.toLocaleString('en-IN')} sq ft ${S.property_type.toLowerCase()} in ${S.city}`;
+  $('#price').textContent=inr(p.price);
+  const lo=p.lower_90-.04*(p.upper_90-p.lower_90),hi=p.upper_90+.04*(p.upper_90-p.lower_90),pc=v=>((v-lo)/(hi-lo)*100).toFixed(2);
+  $('#ruler').innerHTML=`<div class="tr"></div><div class="bd" style="left:${pc(p.lower_90)}%;width:${pc(p.upper_90)-pc(p.lower_90)}%;background:var(--band90)"></div>
+   <div class="bd" style="left:${pc(p.lower_80)}%;width:${pc(p.upper_80)-pc(p.lower_80)}%;background:var(--band80)"></div><div class="pin" style="left:${pc(p.price)}%"></div>
+   ${[[p.lower_90,'90% low'],[p.price,'estimate'],[p.upper_90,'90% high']].map(([v,l])=>`<div class="tk" style="left:${pc(v)}%"><b>${cmp(v)}</b>${l}</div>`).join('')}`;
+  const diff=d.anchor_psqft?` ${((d.per_sqft/d.anchor_psqft-1)*100).toFixed(0)}% vs city average`:'';
+  $('#kpis').innerHTML=[['Per sq ft',inr(d.per_sqft),diff.trim()],['Total to acquire',cmp(t.total_purchase_cost),'price, stamp duty and fees'],['EMI',inr(d.loan.emi),`${S.loan_years} years at ${(+S.loan_rate).toFixed(1)}%`],['Property tax',cmp(t.annual_property_tax),'per year']]
+   .map(([l,v,n])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="n">${n}</div></div>`).join('');
+  renderTab()}
+var renderTab=function(){if(!DATA)return;const d=DATA,t=d.tax;
+  if(TAB==='drivers'){const g=d.drivers.groups;Plotly.react('c-wf',[{type:'waterfall',x:['Average property',...g.map(x=>x.group),'This property'],measure:['absolute',...g.map(()=>'relative'),'total'],
+    y:[d.drivers.baseline,...g.map(x=>x.rupee_effect),d.drivers.price],text:[cmp(d.drivers.baseline),...g.map(x=>cmp(x.rupee_effect)),cmp(d.drivers.price)],textposition:'outside',
+    hovertext:['Typical property in the training data',...g.map(x=>`${x.group}: ${x.pct_effect>=0?'+':''}${x.pct_effect.toFixed(1)}% on the price`),'Model estimate'],hoverinfo:'text',
+    connector:{line:{color:'rgba(128,128,128,.4)'}},increasing:{marker:{color:SURVEY}},decreasing:{marker:{color:STAMP}},totals:{marker:{color:ACC}}}],LAY(430,{yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'}}),CFG)}
+  if(TAB==='costs'){const o=[['Stamp duty',t.stamp_duty],['Registration',t.registration_charges],['Mutation',t.mutation_charges]];
+    Plotly.react('c-ot',[{type:'pie',labels:o.map(x=>x[0]),values:o.map(x=>Math.max(x[1],0)),hole:.55,sort:false,marker:{colors:[STAMP,ACC,GOLD]},textinfo:'label+percent'}],LAY(300,{showlegend:false,title:{text:'One-time charges',x:0}}),CFG);
+    const rows=[['Property tax',t.annual_property_tax],['Water',t.water_tax],['Sewerage',t.sewerage_tax],['Solid waste',t.solid_waste_management_charge],['Cesses',t.education_cess+t.fire_cess+t.health_cess+t.urban_development_cess],['Recurring total',t.recurring_annual_total],
+      ['Capital gains tax if sold (est.)',t.capital_gains_tax_estimate]];
+    $('#t-rec').innerHTML=`<table><tr><th>Yearly and exit charges</th><th></th></tr>${rows.map(r=>`<tr><td>${r[0]}</td><td>${inr(r[1])}</td></tr>`).join('')}</table>`;
+    $('#t-note').innerHTML=`<div class="note">Rules used: <b>${t.rule_source}</b>${t.is_fallback_used?' (generic fallback, a rough estimate)':''}. ${t.disclaimer||''}</div>`}
+  if(TAB==='loan'){const y=d.loan.yearly;Plotly.react('c-loan',[{type:'bar',x:y.year,y:y.principal.map((v,i)=>v+y.prepayment[i]),name:'Principal',marker:{color:SURVEY}},{type:'bar',x:y.year,y:y.interest,name:'Interest',marker:{color:STAMP}},
+    {type:'scatter',x:y.year,y:y.closing_balance,name:'Still owed',mode:'lines+markers',line:{color:ACC,width:3},yaxis:'y2'}],
+    LAY(380,{barmode:'stack',xaxis:{title:'Loan year'},yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'},yaxis2:{overlaying:'y',side:'right',tickformat:'~s',showgrid:false}}),CFG);
+    $('#loan-kpis').innerHTML=[['Loan',cmp(d.loan.amount)],['Monthly EMI',inr(d.loan.emi)],['Total interest',cmp(d.loan.interest)],['Total repaid',cmp(d.loan.total)]].map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}
+  if(TAB==='advice'){$('#recs').innerHTML=d.recs.map(r=>`<li>${r.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')}</li>`).join('');
+    $('#scores').innerHTML=[['Investment score',d.scores.investment,SURVEY],['Risk score (lower is safer)',d.scores.risk,STAMP]].map(([l,v,c])=>`<div>${l}: <b>${v}/100</b></div><div class="meter"><i style="width:${v}%;background:${c}"></i></div>`).join('')+'<p class="eyebrow">Rule-of-thumb indicators for exploring the tool, not financial advice.</p>'}}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;TAB=b.dataset.t;$$('#tabs button').forEach(x=>x.classList.toggle('on',x===b));$$('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+TAB));renderTab()});
+
+/* ---------- navigation ---------- */
+$('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$$('nav button').forEach(x=>x.classList.toggle('on',x===b));$$('.view').forEach(v=>v.classList.toggle('on',v.id===b.dataset.v));
+  ENTER[b.dataset.v]&&ENTER[b.dataset.v]()});
+
+/* ---------- market ---------- */
+let MK=null,MM='psqft';
+async function loadMarket(){if(!MK){MK=await (await fetch('/api/market')).json();const ts=[...new Set(MK.map(r=>r.property_type))].sort();$('#m-type').innerHTML=ts.map(t=>`<option ${t==='Apartment'?'selected':''}>${t}</option>`).join('');$('#m-type').onchange=drawMarket;
+  $('#m-metric').onclick=e=>{const b=e.target.closest('button');if(!b)return;MM=b.dataset.m;$$('#m-metric button').forEach(x=>x.classList.toggle('on',x===b));drawMarket()}}drawMarket()}
+async function drawMarket(){const t=$('#m-type').value,rows=MK.filter(r=>r.property_type===t),lab={psqft:'₹ per sq ft',price:'Median price',n:'Listings'}[MM];
+  const gd=$('#c-map');await Plotly.react('c-map',[{type:'scattermap',lat:rows.map(r=>r.lat),lon:rows.map(r=>r.lon),mode:'markers',customdata:rows.map(r=>[r.city,r.psqft,r.price,r.n]),
+   marker:{size:rows.map(r=>r.n),sizemode:'area',sizeref:2*Math.max(...rows.map(r=>r.n))/900,sizemin:7,color:rows.map(r=>r[MM]),colorscale:'Viridis',showscale:true,colorbar:{title:{text:lab},tickformat:'~s'},opacity:.85},
+   hovertemplate:'<b>%{customdata[0]}</b><br>₹%{customdata[1]:,.0f} per sq ft<br>%{customdata[3]} listings<extra></extra>'}],
+   {map:{style:'carto-positron',center:{lat:22.6,lon:79},zoom:3.4},margin:{l:0,r:0,t:0,b:0},paper_bgcolor:'rgba(0,0,0,0)',height:520},{displayModeBar:false,responsive:true,scrollZoom:true});
+  gd.removeAllListeners&&gd.removeAllListeners('plotly_click');
+  gd.on&&gd.on('plotly_click',ev=>{const c=ev.points[0].customdata,el=$('#m-detail');el.style.display='block';el.innerHTML=`<b>${c[0]}</b>: median ${inr(c[1])} per sq ft, median price ${cmp(c[2])}, ${c[3]} ${t.toLowerCase()} listings in the dataset.`});
+  const top=[...rows].sort((a,b)=>b[MM]-a[MM]).slice(0,15).reverse();
+  Plotly.react('c-rank',[{type:'bar',orientation:'h',y:top.map(r=>r.city),x:top.map(r=>r[MM]),marker:{color:ACC},hovertemplate:'%{y}: %{x:,.0f}<extra></extra>'}],LAY(440,{title:{text:`Top 15 cities, ${lab.toLowerCase()}`,x:0},xaxis:{tickformat:'~s'},margin:{l:110,r:12,t:40,b:40}}),CFG)}
+
+/* ---------- confidence lab ---------- */
+let RES=null;
+const quant=(a,c)=>{const s=[...a].sort((x,y)=>x-y),k=Math.min(Math.ceil((s.length+1)*c),s.length);return s[k-1]};
+async function loadTrust(){if(!RES){RES=await (await fetch('/api/residuals')).json();$('#conf').oninput=drawTrust;$('#fixed').onchange=drawTrust;
+  const m=META.model,tm=m.test_metrics,cv=m.empirical_coverage_test;$('#t-model').innerHTML=[['R² on unseen data',tm.r2.toFixed(3)],['Typical error',tm.median_ape.toFixed(1)+'%'],['Average miss',cmp(tm.mae)],['90% range holds',(cv['90']*100).toFixed(1)+'%']]
+   .map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('')}drawTrust()}
+function drawTrust(){const conf=+$('#conf').value/100;$('#conf-v').textContent=Math.round(conf*100)+'%';const q=quant(RES.calib.abs_log,conf),T=RES.test.abs_log,cover=T.filter(v=>v<=q).length/T.length;
+  const up=Math.exp(q)-1,dn=1-Math.exp(-q),fx=$('#fixed').checked,fc=RES.test.ratio.filter(r=>Math.abs(r-1)<=.1).length/T.length;
+  $('#t-kpis').innerHTML=[['Range around the estimate',`−${(dn*100).toFixed(0)}% to +${(up*100).toFixed(0)}%`],['You asked for',Math.round(conf*100)+'%'],['Held on unseen properties',(cover*100).toFixed(1)+'%'],...(fx?[['A fixed ±10% band holds',(fc*100).toFixed(1)+'%']]:[])]
+   .map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+  const lo=Math.exp(-q),hi=Math.exp(q),r=RES.test.ratio,ins=r.map(v=>v>=lo&&v<=hi);
+  Plotly.react('c-scatter',[{type:'scattergl',mode:'markers',x:r.map((_,i)=>i).filter(i=>ins[i]),y:r.filter((_,i)=>ins[i]),marker:{color:'rgba(47,125,107,.55)',size:5},name:'Inside the range',hoverinfo:'skip'},
+   {type:'scattergl',mode:'markers',x:r.map((_,i)=>i).filter(i=>!ins[i]),y:r.filter((_,i)=>!ins[i]),marker:{color:STAMP,size:6},name:'Outside',hoverinfo:'skip'}],
+   LAY(400,{title:{text:'Actual price divided by the estimate, for every unseen property',x:0},xaxis:{title:'Properties'},yaxis:{title:'Actual ÷ estimate'},
+   shapes:[{type:'rect',xref:'paper',x0:0,x1:1,y0:lo,y1:hi,fillcolor:'rgba(38,51,138,.10)',line:{width:0}},...(fx?[.9,1.1].map(y=>({type:'line',xref:'paper',x0:0,x1:1,y0:y,y1:y,line:{color:GOLD,dash:'dash'}})):[])]}),CFG);
+  const xs=[...Array(50).keys()].map(i=>50+i),ys=xs.map(c=>{const qq=quant(RES.calib.abs_log,c/100);return T.filter(v=>v<=qq).length/T.length*100});
+  Plotly.react('c-curve',[{x:xs,y:xs,name:'Perfect',line:{color:'rgba(128,128,128,.7)',dash:'dash'}},{x:xs,y:ys,name:'Measured',line:{color:ACC,width:3}},{x:[conf*100],y:[cover*100],name:'Your choice',mode:'markers',marker:{size:13,color:STAMP}}],
+   LAY(320,{title:{text:'Does the range hold as often as it claims?',x:0},xaxis:{title:'Confidence asked for, %'},yaxis:{title:'Inside the range, %'}}),CFG)}
+
+
+/* ---------- generic page controls ---------- */
+const OBJ={},FMTS={},REF={};
+const deb=(fn,ms=160)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+const post=(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+function ps(o,f,label,min,max,step,fm){FMTS[o+'-'+f]=fm;const v=OBJ[o][f];return `<div class="pf"><label>${label}<b id="pv-${o}-${f}">${fm?fm(v):v}</b></label><input type="range" min="${min}" max="${max}" step="${step}" value="${v}" data-o="${o}" data-f="${f}"></div>`}
+function pn(o,f,label,step){return `<div class="pf"><label>${label}</label><input type="number" step="${step}" value="${Math.round(OBJ[o][f])}" data-o="${o}" data-f="${f}"></div>`}
+function psel(o,f,label,opts){return `<div class="pf"><label>${label}</label><select data-o="${o}" data-f="${f}" style="width:auto;background:#fff;color:#16213A;border-color:var(--rule)">${opts.map(x=>`<option ${x==OBJ[o][f]?'selected':''}>${x}</option>`).join('')}</select></div>`}
+document.addEventListener('input',e=>{const t=e.target,o=t.dataset&&t.dataset.o;if(!o)return;const v=(t.type==='range'||t.type==='number')?+t.value:t.value;OBJ[o][t.dataset.f]=v;
+  const el=$('#pv-'+o+'-'+t.dataset.f);if(el){const fm=FMTS[o+'-'+t.dataset.f];el.textContent=fm?fm(v):v}if(t.dataset.f==='state'&&o==='B'){buildB()}REF[o]&&REF[o]()});
+const pct=v=>v+'%',yrs=v=>v+' yrs',pc1=v=>(+v).toFixed(1)+'%',sq=v=>(+v).toLocaleString('en-IN')+' sq ft';
+const dl=(name,text,type='text/csv')=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click()};
+
+/* ---------- studio: save, pdf, negotiate ---------- */
+$('#b-save').onclick=async()=>{const r=await post('/api/save',S);$('#act-msg').textContent=`Saved as #${r.id}. Open Portfolio to see it.`};
+$('#b-pdf').onclick=async()=>{$('#act-msg').textContent='Building the report...';const r=await fetch('/api/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(S)});
+  const b=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`valuation_${S.city}.pdf`;a.click();$('#act-msg').textContent='Report downloaded.'};
+let askTouched=false;
+$('#ask').oninput=()=>{askTouched=true;renderNego()};
+const renderNego=deb(async()=>{if(!DATA||TAB!=='nego')return;const ai=$('#ask');if(!askTouched)ai.value=Math.round(DATA.pred.price*1.1/1e5)*1e5;
+  const n=await post('/api/negotiate',{...S,asking:+ai.value});const q=n.quantiles;
+  $('#nego-out').innerHTML=`<div class="verdict">${inr(n.asking)} is above <span class="${n.percentile>75?'bad':n.percentile<40?'good':''}">${n.percentile.toFixed(0)}%</span> of plausible values.</div>
+   <p style="max-width:700px">The model's middle estimate is <b>${cmp(q['50'])}</b>, so the asking price is <b>${n.median_gap_pct>=0?'+':''}${n.median_gap_pct.toFixed(1)}%</b> against it. A reasonable opening offer would sit between <b>${cmp(q['25'])}</b> and <b>${cmp(q['50'])}</b>.
+   This reflects the model's own error spread on synthetic data, not real market negotiations.</p>`;
+  Plotly.react('c-nego',[{type:'bar',x:['10th','25th','50th','75th','90th'],y:[q['10'],q['25'],q['50'],q['75'],q['90']],marker:{color:ACC},text:[q['10'],q['25'],q['50'],q['75'],q['90']].map(cmp),textposition:'outside'}],
+   LAY(320,{title:{text:'Plausible values, by percentile',x:0},yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:n.asking,y1:n.asking,line:{color:STAMP,width:3,dash:'dash'}}],
+   annotations:[{xref:'paper',x:1,y:n.asking,text:'Asking',showarrow:false,yshift:12,font:{color:STAMP}}]}),CFG)});
+const _rt=renderTab;renderTab=function(){_rt();if(TAB==='nego')renderNego()};
+
+/* ---------- compare ---------- */
+OBJ.B={state:'Maharashtra',city:'Pune',property_type:'Apartment',built_up_area_sqft:1200,construction_year:2015,construction_quality:'Standard'};
+function buildB(){const states=[...new Set(META.cities.map(c=>c.state))].sort(),cities=META.cities.filter(c=>c.state===OBJ.B.state).map(c=>c.city);if(!cities.includes(OBJ.B.city))OBJ.B.city=cities[0];
+  $('#b-ctl').innerHTML=psel('B','state','B: state',states)+psel('B','city','City',cities)+psel('B','property_type','Type',TYPES)+ps('B','built_up_area_sqft','Area',200,10000,50,sq)+ps('B','construction_year','Built in',1950,2026,1)+psel('B','construction_quality','Quality',['Basic','Standard','Premium','Luxury'])}
+REF.B=deb(runCompare);
+async function runCompare(){if(!META)return;const A={...S},Bq={...S,...OBJ.B,amen:S.amen,near:S.near};const [a,b]=await Promise.all([post('/api/valuate',A),post('/api/valuate',Bq)]);
+  const rows=[['Estimated value',x=>x.pred.price,cmp,0],['Per sq ft',x=>x.per_sqft,inr,0],['Total to acquire',x=>x.tax.total_purchase_cost,cmp,0],['Charges on top of the price',x=>x.tax.one_time_total,cmp,0],['EMI',x=>x.loan.emi,inr,0],['Property tax a year',x=>x.tax.annual_property_tax,cmp,0]];
+  let html='<div class="cmp"><div class="h"></div><div class="h">A: '+S.city+', '+S.property_type+'</div><div class="h">B: '+OBJ.B.city+', '+OBJ.B.property_type+'</div><div class="h">B against A</div>';
+  for(const [l,f,fm] of rows){const va=f(a),vb=f(b),d=(vb/va-1)*100;html+=`<div>${l}</div><div>${fm(va)}</div><div>${fm(vb)}</div><div class="${d>0?'bad':'good'}">${d>=0?'+':''}${d.toFixed(1)}%</div>`}
+  $('#cmp-out').innerHTML=html+'</div>';
+  const ppa=a.tax.total_purchase_cost/S.built_up_area_sqft,ppb=b.tax.total_purchase_cost/OBJ.B.built_up_area_sqft,d=(ppb/ppa-1)*100;
+  $('#cmp-out').insertAdjacentHTML('afterbegin',`<div class="verdict">B costs ${Math.abs(d).toFixed(0)}% ${d<0?'less':'more'} per sq ft to acquire${d<0?', so it gives more space for the money.':'. A is the better value per sq ft.'}</div>`);
+  Plotly.react('c-cmp',[{type:'bar',name:'Value',x:['A','B'],y:[a.pred.price,b.pred.price],marker:{color:ACC},error_y:{type:'data',symmetric:false,array:[a.pred.upper_90-a.pred.price,b.pred.upper_90-b.pred.price],arrayminus:[a.pred.price-a.pred.lower_90,b.pred.price-b.pred.lower_90]}},
+   {type:'bar',name:'Charges on top',x:['A','B'],y:[a.tax.one_time_total,b.tax.one_time_total],marker:{color:STAMP}}],LAY(340,{barmode:'stack',yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'},title:{text:'Value with its 90% range, plus charges',x:0}}),CFG)}
+
+/* ---------- money ---------- */
+OBJ.L={price:8e6,down:20,rate:8.5,years:20,prepay:5000,lump:0};
+OBJ.A={income:150000,existing:0,foir:45,down:20,rate:8.5,years:20,ptype:'Apartment',area:1000};
+OBJ.R={price:8e6,closing:4e5,down:20,rate:8.5,years:20,rent:20000,rg:5,ap:6,inv:9,horizon:15,maint:40000,ptax:10000};
+let MSUB='loan',moneyInit=false;
+function initMoney(){if(!moneyInit&&DATA){moneyInit=true;OBJ.L.price=OBJ.R.price=Math.round(DATA.pred.price/1e5)*1e5;OBJ.R.closing=Math.round(DATA.tax.one_time_total);OBJ.R.ptax=Math.round(DATA.tax.annual_property_tax);OBJ.R.rent=Math.round(DATA.pred.price*.03/12/500)*500;OBJ.R.maint=Math.round(DATA.pred.price*.005/1000)*1000;OBJ.A.area=S.built_up_area_sqft;OBJ.A.ptype=S.property_type}
+  $('#s-loan').innerHTML='<div class="ctl">'+pn('L','price','Property price (₹)',100000)+ps('L','down','Down payment',0,90,1,pct)+ps('L','rate','Interest rate',6,14,.1,pc1)+ps('L','years','Tenure',5,30,1,yrs)+ps('L','prepay','Extra each month (₹)',0,50000,1000,v=>inr(v))+ps('L','lump','One-off in month 12 (₹)',0,2000000,50000,v=>inr(v))+'</div><div class="kpis" id="l-k"></div><div class="two"><div class="chart" id="c-heat"></div><div class="chart" id="c-bal"></div></div><div id="l-msg"></div>';
+  $('#s-aff').innerHTML='<div class="ctl">'+pn('A','income','Monthly take-home (₹)',10000)+pn('A','existing','Existing EMIs (₹/month)',1000)+ps('A','foir','Share of income for EMIs',30,65,1,pct)+ps('A','down','Down payment',0,90,1,pct)+ps('A','rate','Interest rate',6,14,.1,pc1)+ps('A','years','Tenure',5,30,1,yrs)+psel('A','ptype','Property type',TYPES)+ps('A','area','Size',300,4000,50,sq)+'</div><div class="kpis" id="a-k"></div><div class="two"><div class="chart" id="c-stress"></div><div></div></div><div class="chart" id="c-aff"></div>';
+  $('#s-rent').innerHTML='<div class="ctl">'+pn('R','price','Property price (₹)',100000)+ps('R','down','Down payment',0,90,1,pct)+ps('R','rate','Loan rate',6,14,.1,pc1)+ps('R','years','Loan tenure',5,30,1,yrs)+pn('R','rent','Rent for a similar home (₹/month)',1000)+ps('R','rg','Rent grows',0,12,.5,pc1)+ps('R','ap','Property grows',0,12,.5,pc1)+ps('R','inv','Investments earn',0,15,.5,pc1)+ps('R','horizon','Years',3,30,1,yrs)+'</div><div class="kpis" id="r-k"></div><div class="chart" id="c-rent"></div><div class="chart" id="c-rheat"></div><p class="eyebrow">Ignores tax benefits and the non-financial value of owning. Arithmetic on your assumptions.</p>';
+  runMoney()}
+const kp=a=>a.map(([l,v,n])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="n">${n||''}</div></div>`).join('');
+REF.L=REF.A=REF.R=deb(()=>runMoney());
+async function runMoney(){if(MSUB==='loan'){const r=await post('/api/loan',OBJ.L),i=r.impact;
+    $('#l-k').innerHTML=kp([['Loan',cmp(r.loan)],['EMI a month',inr(r.emi)],['Interest over the loan',cmp(r.interest),(r.interest/r.loan*100).toFixed(0)+'% of what you borrow'],['Total repaid',cmp(r.total)]]);
+    const H=r.heat;Plotly.react('c-heat',[{type:'heatmap',x:H.rates.map(v=>v.toFixed(1)+'%'),y:H.tenures.map(v=>v+' yrs'),z:H.z,colorscale:'Blues',hovertemplate:'Rate %{x}, %{y}<br>EMI %{z:,.0f}<extra></extra>',colorbar:{tickformat:'~s'}}],LAY(360,{title:{text:'EMI for every rate and tenure',x:0},margin:{l:60,r:10,t:40,b:40}}),CFG);
+    Plotly.react('c-bal',[{x:r.base.year,y:r.base.balance,name:'No prepayment',line:{color:'#667089',dash:'dot'}},{x:r.new.year,y:r.new.balance,name:'With prepayment',line:{color:SURVEY,width:3},fill:'tozeroy',fillcolor:'rgba(47,125,107,.10)'}],LAY(360,{title:{text:'How fast the loan shrinks',x:0},xaxis:{title:'Years'},yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'}}),CFG);
+    $('#l-msg').innerHTML=(OBJ.L.prepay||OBJ.L.lump)?`<div class="note">Interest saved: <b>${inr(i.interest_saved)}</b>. The loan ends <b>${i.months_saved} months</b> sooner.</div>`:''}
+  if(MSUB==='aff'){const r=await post('/api/afford',OBJ.A),a=r.result;
+    $('#a-k').innerHTML=kp([['Highest comfortable EMI',inr(a.max_emi)],['Largest loan',cmp(a.max_loan)],['Most you can pay',cmp(a.max_property_price),`with ${OBJ.A.down}% down`],['If rates rise 2 points',cmp(a.stressed_max_price)]]);
+    Plotly.react('c-stress',[{type:'bar',x:r.bumps.map(b=>'+'+b),y:r.stress,marker:{color:[ACC,...r.bumps.slice(1).map(()=>STAMP)]}}],LAY(320,{title:{text:'Budget as the rate rises (points)',x:0},yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'}}),CFG);
+    const cs=r.cities;Plotly.react('c-aff',[{type:'bar',x:cs.map(c=>c.city),y:cs.map(c=>c.price),marker:{color:cs.map(c=>c.price<=a.max_property_price?SURVEY:'rgba(128,128,128,.45)')},hovertemplate:'%{x}: %{y:,.0f}<extra></extra>'}],
+     LAY(420,{title:{text:`Typical price of a ${OBJ.A.area.toLocaleString('en-IN')} sq ft ${OBJ.A.ptype.toLowerCase()} by city (green is within budget)`,x:0},xaxis:{tickangle:-60},yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'},shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:a.max_property_price,y1:a.max_property_price,line:{color:STAMP,width:3}}],margin:{l:56,r:10,t:40,b:110}}),CFG)}
+  if(MSUB==='rent'){const r=await post('/api/rentbuy',OBJ.R),s=r.series,n=s.year.length-1;
+    $('#r-k').innerHTML=kp([[`Owning after ${OBJ.R.horizon} years`,cmp(s.buy_net_worth[n]),'equity after selling costs'],[`Renting after ${OBJ.R.horizon} years`,cmp(s.rent_net_worth[n]),'investments'],['Owning pulls ahead',r.breakeven?'year '+r.breakeven:'not within the horizon','']]);
+    Plotly.react('c-rent',[{x:s.year,y:s.buy_net_worth,name:'Own',line:{color:ACC,width:3}},{x:s.year,y:s.rent_net_worth,name:'Rent and invest',line:{color:STAMP,width:3}}],LAY(340,{title:{text:'Net worth under each choice',x:0},xaxis:{title:'Years'},yaxis:{tickformat:'~s',gridcolor:'rgba(128,128,128,.18)'}}),CFG);
+    const H=r.heat;Plotly.react('c-rheat',[{type:'heatmap',x:H.aps.map(v=>v+'%'),y:H.invs.map(v=>v+'%'),z:H.z,colorscale:'RdBu',zmid:0,hovertemplate:'Property grows %{x}, investments earn %{y}<br>Owning minus renting: %{z:,.0f}<extra></extra>',colorbar:{tickformat:'~s'}}],
+     LAY(320,{title:{text:'Owning minus renting (blue favours owning)',x:0},xaxis:{title:'Property growth a year'},yaxis:{title:'Investment return a year'}}),CFG)}}
+$('#money-tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;MSUB=b.dataset.s;$$('#money-tabs button').forEach(x=>x.classList.toggle('on',x===b));['loan','aff','rent'].forEach(k=>$('#s-'+k).classList.toggle('hidden',k!==MSUB));runMoney()});
+
+/* ---------- portfolio ---------- */
+const TEMPLATE='state,city,property_type,built_up_area_sqft,carpet_area_sqft,plot_area_sqft,construction_year,bedrooms,bathrooms,floor_number,construction_quality,occupancy,nearby_metro,parking,lift_available\nDelhi,Delhi,Apartment,1200,1000,1500,2015,3,2,2,Standard,Owner Occupied,1,1,1\nMaharashtra,Pune,Villa,2800,2400,3600,2021,4,4,0,Premium,Owner Occupied,0,1,0\n';
+$('#b-template').onclick=()=>dl('bulk_template.csv',TEMPLATE);
+$('#bulk-file').onchange=async e=>{const f=e.target.files[0];if(!f)return;$('#bulk-out').innerHTML='<p>Valuing...</p>';const text=await f.text(),r=await post('/api/bulk',{csv:text});
+  if(r.error){$('#bulk-out').innerHTML=`<div class="note">${r.error}</div>`;return}
+  const pi=r.columns.indexOf('predicted_price'),tot=r.rows.reduce((s,x)=>s+(x[pi]||0),0),ok=r.rows.filter(x=>x[pi]!=null).length;
+  $('#bulk-out').innerHTML=`<div class="kpis">${kp([['Valued',`${ok} of ${r.n}`],['Portfolio value',cmp(tot)]])}</div><div class="scroll"><table><tr>${r.columns.map(c=>`<th>${c}</th>`).join('')}</tr>${r.rows.slice(0,200).map(x=>`<tr>${x.map(v=>`<td>${v==null?'':v}</td>`).join('')}</tr>`).join('')}</table></div><p class="eyebrow">Showing up to 200 rows. The download has all of them.</p><button class="btn" id="b-bdl">Download results</button>`;
+  $('#b-bdl').onclick=()=>dl('bulk_valuations.csv',r.columns.join(',')+'\n'+r.rows.map(x=>x.map(v=>v==null?'':`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'))};
+async function loadHistory(){const h=await (await fetch('/api/history')).json();
+  $('#hist-out').innerHTML=h.length?`<div class="scroll"><table><tr><th>#</th><th>When</th><th>City</th><th>Type</th><th>Sq ft</th><th>Value</th><th>Total to acquire</th><th></th></tr>${h.map(x=>`<tr><td>${x.id}</td><td>${String(x.timestamp).slice(0,16).replace('T',' ')}</td><td>${x.city}</td><td>${x.property_type}</td><td>${Math.round(x.area_sqft)}</td><td>${inr(x.predicted_price)}</td><td>${inr(x.total_purchase_cost)}</td><td><button class="btn ghost" data-del="${x.id}">Delete</button></td></tr>`).join('')}</table></div>`:'<p class="eyebrow">Nothing saved yet. Use Save to history in the Studio.</p>'}
+$('#hist-out').addEventListener('click',async e=>{const id=e.target.dataset.del;if(!id)return;await post('/api/history/delete',{id:+id});loadHistory()});
+
+/* ---------- view entry hooks ---------- */
+const ENTER={market:()=>loadMarket(),trust:()=>loadTrust(),studio:()=>DATA&&renderTab(),compare:()=>{buildB();runCompare()},money:()=>initMoney(),portfolio:()=>loadHistory()};
+
+/* ---------- boot ---------- */
+(async()=>{META=await (await fetch('/api/meta')).json();buildControls();go()})();
+</script>
+</body>
+</html>

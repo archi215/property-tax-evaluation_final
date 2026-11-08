@@ -1,0 +1,60 @@
+{
+  "overall": {
+    "mae": 909144.5978954084,
+    "rmse": 1622853.9083278822,
+    "r2": 0.9671392212191994,
+    "mape": 8.886480104627545,
+    "median_ape": 7.186863758063583,
+    "n_test": 1176
+  },
+  "by_property_type": {
+    "Apartment": {
+      "mape": 8.054,
+      "count": 545
+    },
+    "Independent House": {
+      "mape": 8.954,
+      "count": 217
+    },
+    "Office": {
+      "mape": 7.369,
+      "count": 66
+    },
+    "Plot": {
+      "mape": 8.824,
+      "count": 134
+    },
+    "Shop": {
+      "mape": 11.157,
+      "count": 65
+    },
+    "Villa": {
+      "mape": 8.536,
+      "count": 110
+    },
+    "Warehouse": {
+      "mape": 20.132,
+      "count": 39
+    }
+  },
+  "by_tier": {
+    "Metro": {
+      "mape": 9.966,
+      "count": 381
+    },
+    "Tier-2/3": {
+      "mape": 8.369,
+      "count": 795
+    }
+  },
+  "interval_coverage": {
+    "80": {
+      "nominal": 0.8,
+      "empirical": 0.8001700680272109
+    },
+    "90": {
+      "nominal": 0.9,
+      "empirical": 0.9098639455782312
+    }
+  }
+}

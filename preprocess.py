@@ -1,125 +1,155 @@
 """
 preprocess.py
 ==============
-Data preprocessing for the Indian property dataset.
-Mirrors the original project's preprocessing structure (load -> clean ->
-feature engineer -> outlier removal -> save) but adapted for Indian
-property fields instead of the original US housing schema.
-"""
+Load -> clean -> split -> encode (train-only statistics) -> engineer -> save.
 
-import pandas as pd
-import numpy as np
-import os
+Changes vs. the original version
+--------------------------------
+* The train / valid / calibration / test split is assigned HERE (stored in a
+  `split` column) so every downstream script uses identical rows.
+* city_encoded / state_encoded are now fitted on TRAIN rows only, with
+  smoothing, and saved to models/encoders.json. Previously they were computed
+  on the full dataset (test rows leaked into the feature) and the app had to
+  re-read the raw CSV to reproduce them.
+* A leak-free, public-anchor feature `city_anchor_psqft` (+ `is_metro`) comes
+  from CITY_PROFILES, so cities never seen in training still get sensible
+  predictions.
+* Non-predictive columns (pin_code, population_density, rental_yield_pct) are
+  kept in the cleaned file for reporting but excluded from model features.
+"""
+import json
 import logging
+import os
+
+import numpy as np
+import pandas as pd
+
+import config
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
-DATA_DIR = "data"
-RAW_PATH = os.path.join(DATA_DIR, "india_property_data.csv")
-CLEAN_PATH = os.path.join(DATA_DIR, "cleaned_data.csv")
+LEAKY_COLS = ["circle_rate_value", "govt_valuation"]
+ONEHOT_COLS = [
+    "property_type", "property_category", "facing_direction",
+    "construction_quality", "occupancy", "zone",
+]
 
 
 def load_or_generate_dataset() -> pd.DataFrame:
-    """Load the dataset, generating it first if it doesn't exist yet."""
-    if not os.path.exists(RAW_PATH):
-        logger.info("Raw dataset not found -- generating it now via dataset_loader...")
+    if not os.path.exists(config.RAW_PATH):
+        logger.info("Raw dataset not found -- generating via dataset_loader...")
         from dataset_loader import save_dataset
-        save_dataset(path=RAW_PATH)
-    df = pd.read_csv(RAW_PATH)
+        save_dataset(path=config.RAW_PATH)
+    df = pd.read_csv(config.RAW_PATH)
     logger.info(f"Original shape: {df.shape}")
     return df
 
 
-def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+def assign_splits(n: int, seed: int = config.RANDOM_STATE) -> np.ndarray:
+    rng = np.random.RandomState(seed)
+    order = rng.permutation(n)
+    labels = np.empty(n, dtype=object)
+    start = 0
+    names = list(config.SPLIT_FRACTIONS)
+    for i, name in enumerate(names):
+        size = n - start if i == len(names) - 1 else int(round(n * config.SPLIT_FRACTIONS[name]))
+        labels[order[start:start + size]] = name
+        start += size
+    return labels
+
+
+def fit_target_encoding(train_df: pd.DataFrame, key: str, target: str, m: float):
+    """Smoothed mean encoding. Returns (mapping dict, global mean)."""
+    g_mean = float(train_df[target].mean())
+    stats = train_df.groupby(key)[target].agg(["mean", "count"])
+    smoothed = (stats["count"] * stats["mean"] + m * g_mean) / (stats["count"] + m)
+    return smoothed.to_dict(), g_mean
+
+
+def preprocess(df: pd.DataFrame):
+    """Returns (cleaned_df, encoders_dict)."""
+    from dataset_loader import CITY_PROFILES
+
     df = df.copy()
 
-    # ── 1. Handle missing values defensively ──────────────────────────
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
-    df[numeric_cols] = df[numeric_cols].fillna(df[numeric_cols].median())
-    categorical_cols = df.select_dtypes(include=["object"]).columns.tolist()
-    for col in categorical_cols:
-        df[col] = df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else "Unknown")
-    logger.info("Missing values handled")
+    # 1. defensive missing-value handling
+    num_cols = df.select_dtypes(include=[np.number]).columns
+    df[num_cols] = df[num_cols].fillna(df[num_cols].median())
+    for col in df.select_dtypes(include=["object"]).columns:
+        mode = df[col].mode()
+        df[col] = df[col].fillna(mode.iloc[0] if not mode.empty else "Unknown")
 
-    # ── 2. Drop pure-identifier columns not useful for prediction ─────
-    drop_cols = [c for c in ["district", "ward", "municipality"] if c in df.columns]
-    df.drop(columns=drop_cols, inplace=True, errors="ignore")
-    logger.info(f"Dropped identifier columns: {drop_cols}")
+    # 2. drop identifier columns
+    df.drop(columns=[c for c in ["district", "ward", "municipality"] if c in df.columns], inplace=True)
 
-    # ── 3. Target encode high-cardinality categoricals (city, zone) ───
-    city_mean = df.groupby("city")["market_price"].mean()
-    df["city_encoded"] = df["city"].map(city_mean)
-
-    state_mean = df.groupby("state")["market_price"].mean()
-    df["state_encoded"] = df["state"].map(state_mean)
-    logger.info("City and state target-encoded")
-
-    # ── 3b. Drop circle_rate_value / govt_valuation from PREDICTIVE features ──
-    # These are derived in dataset_loader.py as market_price * ratio + small noise,
-    # i.e. they are near-deterministic functions of the prediction target. Leaving
-    # them in would let the model "predict" price by trivially inverting that
-    # formula (verified: they alone explained ~99% of feature importance),
-    # which defeats the purpose of a feature-importance-driven valuation model
-    # and would not reflect how real buyers reason about value. We keep these
-    # two columns in the RAW dataset for the tax_engine (which legitimately
-    # needs circle rate for stamp duty), but exclude them from X here.
-    LEAKY_COLS = ["circle_rate_value", "govt_valuation"]
-    df.drop(columns=[c for c in LEAKY_COLS if c in df.columns], inplace=True, errors="ignore")
-    logger.info(f"Dropped leakage-prone columns from model features: {LEAKY_COLS}")
-
-    # ── 4. One-hot encode low-cardinality categoricals ─────────────────
-    onehot_cols = [
-        "property_type", "property_category", "facing_direction",
-        "construction_quality", "occupancy", "zone",
-    ]
-    onehot_cols = [c for c in onehot_cols if c in df.columns]
-    df = pd.get_dummies(df, columns=onehot_cols, drop_first=False)
-    logger.info(f"One-hot encoded: {onehot_cols}")
-
-    # Drop raw city/state text columns now that they're encoded numerically
-    df.drop(columns=["city", "state"], inplace=True, errors="ignore")
-
-    # ── 5. Feature engineering ─────────────────────────────────────────
-    df["property_age"] = (2026 - df["construction_year"]).clip(lower=0)
-
-    # NOTE: a "price_per_sqft" feature computed as market_price / area would
-    # also leak the target (it's circular: price = price_per_sqft * area).
-    # We do NOT include it as a model feature for that reason.
-
-    df["total_rooms"] = df["bedrooms"] + df["bathrooms"]
-    df["amenity_score"] = (
-        df["parking"] + df["nearby_metro"] + df["nearby_school"] + df["nearby_hospital"]
-        + df["nearby_market"] + df["lift_available"] + df["swimming_pool"]
-        + df["solar_panels"] + df["rainwater_harvesting"] + df["green_certified"]
-    )
-    logger.info("New features engineered: property_age, total_rooms, amenity_score")
-
-    # ── 6. Remove top/bottom 1% price outliers ─────────────────────────
-    lower = df["market_price"].quantile(0.01)
-    upper = df["market_price"].quantile(0.99)
+    # 3. outliers + invalid prices BEFORE any statistic is learned
+    lower, upper = df["market_price"].quantile([0.01, 0.99])
     before = len(df)
-    df = df[(df["market_price"] >= lower) & (df["market_price"] <= upper)]
+    df = df[(df["market_price"] >= lower) & (df["market_price"] <= upper) & (df["market_price"] > 0)].copy()
     logger.info(f"Outliers removed: {before - len(df)} rows. Remaining: {len(df)}")
 
-    # ── 7. Remove zero/negative prices ─────────────────────────────────
-    df = df[df["market_price"] > 0]
+    # 4. split assignment, then train-only target encoding
+    df = df.reset_index(drop=True)
+    df["split"] = assign_splits(len(df))
+    train = df[df["split"] == "train"]
+    m = config.TARGET_ENCODING_SMOOTHING
+    city_map, g_mean = fit_target_encoding(train, "city", "market_price", m)
+    state_map, _ = fit_target_encoding(train, "state", "market_price", m)
+    df["city_encoded"] = df["city"].map(city_map).fillna(g_mean)
+    df["state_encoded"] = df["state"].map(state_map).fillna(g_mean)
 
-    # ── 8. Log-transform target (helps tree-based models a lot) ───────
+    # leak-free public anchors
+    df["city_anchor_psqft"] = df["city"].map(lambda c: CITY_PROFILES.get(c, {}).get("avg_price_psqft", np.nan))
+    df["city_anchor_psqft"] = df["city_anchor_psqft"].fillna(df["city_anchor_psqft"].median())
+    df["is_metro"] = df["city"].map(lambda c: int(CITY_PROFILES.get(c, {}).get("tier") == "metro"))
+
+    encoders = {
+        "city_map": city_map, "state_map": state_map, "global_mean": g_mean,
+        "smoothing": m, "fitted_on": "train split only",
+    }
+
+    # 5. drop leakage-prone columns (kept in RAW file for the tax engine)
+    df.drop(columns=[c for c in LEAKY_COLS if c in df.columns], inplace=True)
+
+    # 6. one-hot encode
+    onehot = [c for c in ONEHOT_COLS if c in df.columns]
+    df = pd.get_dummies(df, columns=onehot, drop_first=False)
+    df.drop(columns=["city", "state"], inplace=True)
+
+    # 7. feature engineering
+    df["property_age"] = (config.CURRENT_YEAR - df["construction_year"]).clip(lower=0)
+    df["total_rooms"] = df["bedrooms"] + df["bathrooms"]
+    df["amenity_score"] = df[[
+        "parking", "nearby_metro", "nearby_school", "nearby_hospital", "nearby_market",
+        "lift_available", "swimming_pool", "solar_panels", "rainwater_harvesting", "green_certified",
+    ]].sum(axis=1)
+    # price = price_per_sqft x area, so in log space the natural predictor is log(area).
+    # (Without these, linear models score a *negative* R2 -- see README "Findings".)
+    eff_area = np.where(df["property_type_Plot"] == 1, df["plot_area_sqft"], df["built_up_area_sqft"]) \
+        if "property_type_Plot" in df.columns else df["built_up_area_sqft"]
+    df["log_effective_area"] = np.log(np.maximum(eff_area, 1))
+    df["log_city_encoded"] = np.log(df["city_encoded"])
+    df["log_city_anchor"] = np.log(df["city_anchor_psqft"])
+    # price_per_sqft would leak the target (price = ppsf * area) -- deliberately NOT created.
+
+    # 8. log-transform target
     df["price"] = np.log1p(df["market_price"])
     df.drop(columns=["market_price"], inplace=True)
 
-    logger.info(f"\nFinal shape: {df.shape}")
-    logger.info(f"\nColumns: {df.columns.tolist()}")
-    return df
+    logger.info(f"Final shape: {df.shape} | splits: {df['split'].value_counts().to_dict()}")
+    return df, encoders
 
 
 def main():
-    df = load_or_generate_dataset()
-    cleaned = preprocess(df)
-    os.makedirs(DATA_DIR, exist_ok=True)
-    cleaned.to_csv(CLEAN_PATH, index=False)
-    logger.info(f"\nSaved: {CLEAN_PATH}")
+    raw = load_or_generate_dataset()
+    cleaned, encoders = preprocess(raw)
+    os.makedirs(config.DATA_DIR, exist_ok=True)
+    os.makedirs(config.MODELS_DIR, exist_ok=True)
+    cleaned.to_csv(config.CLEAN_PATH, index=False)
+    with open(os.path.join(config.MODELS_DIR, "encoders.json"), "w") as f:
+        json.dump(encoders, f, indent=2)
+    logger.info(f"Saved: {config.CLEAN_PATH} and models/encoders.json")
 
 
 if __name__ == "__main__":
